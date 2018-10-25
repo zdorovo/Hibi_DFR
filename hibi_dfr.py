@@ -120,6 +120,8 @@ class GraphWithAED:
 
         assert(deltaLen >= 0)
 
+        # equalsAsuccessor tells us if we're currently equal to the delta of some node 
+        # above us (- epsilon)
         equalsAsuccessor = False
         for node in self._base_graph.successors(curNode): 
             succEpsilon = self._base_graph.edges[(curNode, node)]['epsilon']
@@ -127,7 +129,9 @@ class GraphWithAED:
             succDelta = self._base_graph.nodes[node]['delta'] 
 
             equalsAsuccessor = equalsAsuccessor or ( curDelta == succDelta - succEpsilon)
-        # check if we're currently equal to some predecessor + epsilon
+
+        # if we're already as small as a successor's delta - epsilon, then we gotta
+        # reset this delta. Otherwise, we can decrease it by 1. 
         if self._base_graph.nodes[curNode]['delta'] == deltaMin or equalsAsuccessor:
             self._base_graph.nodes[curNode]['delta'] = deltaMax
         else:
@@ -172,6 +176,9 @@ class GraphWithAED:
 
     def setAlpha(self, alphaPair):
         self._base_graph.nodes[alphaPair[0]]['alpha'] = alphaPair[1]
+        self.updateEpsilons()
+        # we don't want to updateEpsilons each time we change an individual alpha, 
+        # so this function shouldn't be used inside any loops or anything
 
     def setAlphaList(self, alphaPairList):
         for alphaPair in alphaPairList: 
@@ -294,6 +301,12 @@ class GraphsList:
         return True
 
     def checkAllDeltas(self, display=False):
+        # put some optimizations here, e.g. check if Ns graph has smaller epsilons 
+        # than some alphas graph..
+        # for graph in graphs:
+        #     if Ngraph < graph:
+        #         return true
+        # if epsilons are ones you can get from a graph with comparable top nodes ...
         deltaWorked = False
         self.initDeltas()
         deltaWorked = self.checkDeltas()
